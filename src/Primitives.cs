@@ -14,4 +14,12 @@
     {
         Int16CharCount, Int32CharCount, ZeroTerminated, Raw
     }
+
+    public class InvalidBufferException : Exception
+    {
+        public InvalidBufferException() { }
+        public InvalidBufferException(int bufferSize, int dataSize) : this($"The buffer size was smaller than the data size: {bufferSize} < {dataSize}") { }
+        public InvalidBufferException(string? message) : base(message) { }
+        public InvalidBufferException(string? message, Exception? innerException) : base(message, innerException) { }
+    }
 }
