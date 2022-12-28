@@ -3,7 +3,7 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.4.33110.190
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NCF.BinaryExtensions", "src\NCF.BinaryExtensions.csproj", "{4C3A8715-3552-48FB-803F-88220C605A3D}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CepdLibrary", "src\CepdLibrary.csproj", "{4C3A8715-3552-48FB-803F-88220C605A3D}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Tests", "Tests\Tests.csproj", "{9ABE0301-2FE0-49E5-9E53-A4E9B410020C}"
 EndProject

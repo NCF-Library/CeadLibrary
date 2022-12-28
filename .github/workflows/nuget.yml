@@ -1,4 +1,4 @@
-name: "Deploy NCF.BinaryExtensions to NuGet"
+name: "Deploy CepdLibrary to NuGet"
 
 on:
   push:
@@ -10,11 +10,11 @@ env:
 
 jobs:
   deploy:
-    name: "Deploy NCF.BinaryExtensions"
+    name: "Deploy CepdLibrary"
     runs-on: ubuntu-latest
 
     env:
-      csproj: "NCF.BinaryExtensions"
+      csproj: "CepdLibrary"
       build: "${{ github.workspace }}/build"
 
     steps:

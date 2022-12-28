@@ -1,20 +1,20 @@
-# NCF Binary Extensions
+# Cepd Library
 
-Binary extensions library made for use within NFC-Library
+**C**# **EPD** ([Entertainment Planning & Development](https://en.wikipedia.org/wiki/Nintendo_Entertainment_Planning_%26_Development)) base library for reading/writing Nintendo formats
 
 ### Install
 
-[![NuGet](https://img.shields.io/nuget/v/NCF.BinaryExtensions.svg)](https://www.nuget.org/packages/NCF.BinaryExtensions) [![NuGet](https://img.shields.io/nuget/dt/NCF.BinaryExtensions.svg)](https://www.nuget.org/packages/NCF.BinaryExtensions)
+[![NuGet](https://img.shields.io/nuget/v/CepdLibrary.svg)](https://www.nuget.org/packages/CepdLibrary) [![NuGet](https://img.shields.io/nuget/dt/CepdLibrary.svg)](https://www.nuget.org/packages/CepdLibrary)
 
 #### NuGet
 ```powershell
-Install-Package NCF.BinaryExtensions
+Install-Package CepdLibrary
 ```
 
 #### Build From Source
 ```batch
-git clone https://github.com/NCF-Library/NCF.BinaryExtensions.git
-dotnet build NCF.BinaryExtensions
+git clone https://github.com/NCF-Library/CepdLibrary.git
+dotnet build CepdLibrary
 ```
 
 ---
