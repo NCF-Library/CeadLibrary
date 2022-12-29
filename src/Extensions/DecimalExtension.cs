@@ -1,15 +1,19 @@
-﻿namespace NCF.BinaryExtensions
+﻿using CepdLibrary.IO;
+
+namespace CepdLibrary.Extensions
 {
-    public static class DataConverter
+    public static class DecimalExtension
     {
-        public static void GetBytes(decimal value, Span<byte> buffer)
+        public static void GetBytes(this decimal value, Span<byte> buffer)
         {
-            if(buffer.Length < sizeof(decimal)) {
+            if (buffer.Length < sizeof(decimal))
+            {
                 throw new InvalidBufferException(buffer.Length, sizeof(decimal));
             }
 
             int[] bits = decimal.GetBits(value);
-            for (int i = 0; i < 4; i++) {
+            for (int i = 0; i < 4; i++)
+            {
                 int offset = i * sizeof(int);
                 int bit = bits[i];
                 buffer[offset] = (byte)bit;
@@ -22,7 +26,8 @@
         public static decimal ToDecimal(Span<byte> data)
         {
             int[] bits = new int[4];
-            for (int i = 0; i < 4; i++) {
+            for (int i = 0; i < 4; i++)
+            {
                 int offset = i * sizeof(int);
                 bits[i] = data[offset]
                     | data[offset + 1] << 8
