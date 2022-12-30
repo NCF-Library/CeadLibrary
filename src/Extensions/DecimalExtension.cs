@@ -1,6 +1,6 @@
-﻿using CepdLibrary.IO;
+﻿using CeadLibrary.IO;
 
-namespace CepdLibrary.Extensions
+namespace CeadLibrary.Extensions
 {
     public static class DecimalExtension
     {

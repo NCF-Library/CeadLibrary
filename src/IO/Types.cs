@@ -1,4 +1,4 @@
-﻿namespace CepdLibrary.IO
+﻿namespace CeadLibrary.IO
 {
     public enum Endian : ushort
     {

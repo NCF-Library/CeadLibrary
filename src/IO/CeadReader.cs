@@ -1,14 +1,14 @@
-﻿using CepdLibrary.Extensions;
-using CepdLibrary.Generics;
+﻿using CeadLibrary.Extensions;
+using CeadLibrary.Generics;
 using System.Buffers.Binary;
 using System.Diagnostics;
 using System.IO;
 using System.Text;
 
-namespace CepdLibrary.IO
+namespace CeadLibrary.IO
 {
     [DebuggerDisplay("Position = {_stream.Position}, Length = {_stream.Length}, Endian = {Endian}, Endoding = {_encoding.WebName.ToUpper()}")]
-    public class CepdReader : IDisposable
+    public class CeadReader : IDisposable
     {
         private readonly Stream _stream;
         public Encoding _encoding;
@@ -17,9 +17,9 @@ namespace CepdLibrary.IO
         private readonly bool _leaveOpen;
         private bool _disposed;
 
-        public CepdReader(Stream input) : this(input, Encoding.UTF8, false) { }
-        public CepdReader(Stream input, Encoding encoding) : this(input, encoding, false) { }
-        public CepdReader(Stream input, Encoding encoding, bool leaveOpen)
+        public CeadReader(Stream input) : this(input, Encoding.UTF8, false) { }
+        public CeadReader(Stream input, Encoding encoding) : this(input, encoding, false) { }
+        public CeadReader(Stream input, Encoding encoding, bool leaveOpen)
         {
             ArgumentNullException.ThrowIfNull(input);
             ArgumentNullException.ThrowIfNull(encoding);
@@ -300,8 +300,8 @@ namespace CepdLibrary.IO
             }
         }
 
-        public T ReadObjectPtr<T>(SeekOrigin origin = SeekOrigin.Begin) where T : ICepdObject, new() => ReadObject<T>(ReadInt64(), origin);
-        public T ReadObject<T>(long offset, SeekOrigin origin) where T : ICepdObject, new() => ReadObject(offset, origin, () => (T)new T().Read(this));
+        public T ReadObjectPtr<T>(SeekOrigin origin = SeekOrigin.Begin) where T : ICeadObject, new() => ReadObject<T>(ReadInt64(), origin);
+        public T ReadObject<T>(long offset, SeekOrigin origin) where T : ICeadObject, new() => ReadObject(offset, origin, () => (T)new T().Read(this));
         public T ReadObject<T>(long offset, SeekOrigin origin, Func<T> read)
         {
             T results;
@@ -320,9 +320,9 @@ namespace CepdLibrary.IO
             return results;
         }
 
-        public T[] ReadObjectsPtr<T>(int count, SeekOrigin origin = SeekOrigin.Begin) where T : ICepdObject, new() => ReadObjects<T>(count, ReadInt64(), origin);
-        public T[] ReadObjects<T>(int count, long offset, SeekOrigin origin) where T : ICepdObject, new() => ReadObjects(count, offset, origin, () => (T)new T().Read(this));
-        public T[] ReadObjects<T>(int count, long offset, SeekOrigin origin, Func<T> readObject) where T : ICepdObject, new()
+        public T[] ReadObjectsPtr<T>(int count, SeekOrigin origin = SeekOrigin.Begin) where T : ICeadObject, new() => ReadObjects<T>(count, ReadInt64(), origin);
+        public T[] ReadObjects<T>(int count, long offset, SeekOrigin origin) where T : ICeadObject, new() => ReadObjects(count, offset, origin, () => (T)new T().Read(this));
+        public T[] ReadObjects<T>(int count, long offset, SeekOrigin origin, Func<T> readObject) where T : ICeadObject, new()
         {
             T[] objects = new T[count];
 

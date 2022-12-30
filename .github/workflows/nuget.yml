@@ -1,4 +1,4 @@
-name: "Deploy CepdLibrary to NuGet"
+name: "Deploy CeadLibrary to NuGet"
 
 on:
   push:
@@ -10,11 +10,11 @@ env:
 
 jobs:
   deploy:
-    name: "Deploy CepdLibrary"
+    name: "Deploy CeadLibrary"
     runs-on: ubuntu-latest
 
     env:
-      csproj: "CepdLibrary"
+      csproj: "CeadLibrary"
       build: "${{ github.workspace }}/build"
 
     steps:
