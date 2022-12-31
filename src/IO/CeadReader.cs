@@ -277,12 +277,12 @@ namespace CeadLibrary.IO
                 _stream.Read(buffer);
                 return _encoding.GetString(buffer);
             }
-            else {
-                throw new InvalidTypeException(typeof(StringType), type);
-            }
+
+            throw new InvalidTypeException(typeof(StringType), type);
         }
 
         public T ReadObjectPtr<T>(SeekOrigin origin = SeekOrigin.Begin) where T : ICeadObject, new() => ReadObject<T>(ReadInt64(), origin);
+        public T ReadObjectPtr<T>(Func<T> read, SeekOrigin origin = SeekOrigin.Begin) => ReadObject(ReadInt64(), origin, read);
         public T ReadObject<T>(long offset, SeekOrigin origin) where T : ICeadObject, new() => ReadObject(offset, origin, () => (T)new T().Read(this));
         public T ReadObject<T>(long offset, SeekOrigin origin, Func<T> read)
         {
@@ -303,8 +303,9 @@ namespace CeadLibrary.IO
         }
 
         public T[] ReadObjectsPtr<T>(int count, SeekOrigin origin = SeekOrigin.Begin) where T : ICeadObject, new() => ReadObjects<T>(count, ReadInt64(), origin);
+        public T[] ReadObjectsPtr<T>(int count, Func<T> readObject, SeekOrigin origin = SeekOrigin.Begin) => ReadObjects(count, ReadInt64(), origin, readObject);
         public T[] ReadObjects<T>(int count, long offset, SeekOrigin origin) where T : ICeadObject, new() => ReadObjects(count, offset, origin, () => (T)new T().Read(this));
-        public T[] ReadObjects<T>(int count, long offset, SeekOrigin origin, Func<T> readObject) where T : ICeadObject, new()
+        public T[] ReadObjects<T>(int count, long offset, SeekOrigin origin, Func<T> readObject)
         {
             T[] objects = new T[count];
 
@@ -317,7 +318,7 @@ namespace CeadLibrary.IO
             });
         }
 
-        public bool CheckMagic(Span<byte> expectedMagic, bool throwException = true)
+        public bool CheckMagic(ReadOnlySpan<byte> expectedMagic, bool throwException = true)
         {
             // Only allocate if the request size
             // is more than 256 (which would be unusual)
