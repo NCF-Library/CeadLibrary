@@ -16,8 +16,9 @@ namespace CeadLibrary.IO
     public enum StringType : int
     {
         ZeroTerminated = 0,
+        PascalString = 1,
         Int16CharCount = 2,
-        Int32CharCount = 4,
+        Int32CharCount = 3,
     }
 
     public class InvalidBufferException : Exception
