@@ -1,4 +1,7 @@
-﻿namespace CeadLibrary.IO
+﻿using System.Reflection.PortableExecutable;
+using System.Text;
+
+namespace CeadLibrary.IO
 {
     public enum Endian : ushort
     {
@@ -31,5 +34,13 @@
         public InvalidTypeException(Type validTypes, object receivedType) : this($"Could not find the enum value '{receivedType}' in the enum collection '{validTypes.Name}' ({string.Join(", ", validTypes.GetFields()[1..].Select(x => x.Name))})") { }
         public InvalidTypeException(string? message) : base(message) { }
         public InvalidTypeException(string? message, Exception? innerException) : base(message, innerException) { }
+    }
+
+    public class InvalidMagicException : Exception
+    {
+        public InvalidMagicException() { }
+        public InvalidMagicException(Span<byte> expectedMagic, Span<byte> receivedMagic) : this($"The parser found '{Encoding.UTF8.GetString(receivedMagic)}' instead of '{Encoding.UTF8.GetString(expectedMagic)}'") { }
+        public InvalidMagicException(string? message) : base(message) { }
+        public InvalidMagicException(string? message, Exception? innerException) : base(message, innerException) { }
     }
 }

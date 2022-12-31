@@ -53,7 +53,15 @@ namespace CeadLibrary.IO
         }
 
         public virtual int Read(byte[] buffer, int offset, int count) => _stream.Read(buffer, offset, count);
-        public virtual int Read(Span<byte> buffer) => _stream.Read(buffer);
+        public virtual int Read(Span<byte> buffer)
+        {
+            int numRead = _stream.Read(buffer);
+            if (numRead > buffer.Length) {
+                throw new EndOfStreamException($"Could not read {sizeof(decimal)} bytes");
+            }
+
+            return numRead;
+        }
 
         public void Dispose() => Dispose(true);
         public virtual void Dispose(bool disposing)
@@ -86,9 +94,7 @@ namespace CeadLibrary.IO
         public decimal ReadDecimal()
         {
             Span<byte> buffer = stackalloc byte[sizeof(decimal)];
-            if (_stream.Read(buffer) < sizeof(decimal)) {
-                throw new EndOfStreamException($"Could not read {sizeof(decimal)} bytes.");
-            }
+            Read(buffer);
 
             return DecimalExtension.ToDecimal(buffer);
         }
@@ -96,9 +102,7 @@ namespace CeadLibrary.IO
         public double ReadDouble()
         {
             Span<byte> buffer = stackalloc byte[sizeof(double)];
-            if (_stream.Read(buffer) < sizeof(double)) {
-                throw new EndOfStreamException($"Could not read {sizeof(double)} bytes.");
-            }
+            Read(buffer);
 
             if (Endian == Endian.Big) {
                 return BinaryPrimitives.ReadDoubleBigEndian(buffer);
@@ -111,9 +115,7 @@ namespace CeadLibrary.IO
         public short ReadInt16()
         {
             Span<byte> buffer = stackalloc byte[sizeof(short)];
-            if (_stream.Read(buffer) < sizeof(short)) {
-                throw new EndOfStreamException($"Could not read {sizeof(short)} bytes.");
-            }
+            Read(buffer);
 
             if (Endian == Endian.Big) {
                 return BinaryPrimitives.ReadInt16BigEndian(buffer);
@@ -126,9 +128,7 @@ namespace CeadLibrary.IO
         public ushort ReadUInt16()
         {
             Span<byte> buffer = stackalloc byte[sizeof(ushort)];
-            if (_stream.Read(buffer) < sizeof(ushort)) {
-                throw new EndOfStreamException($"Could not read {sizeof(ushort)} bytes.");
-            }
+            Read(buffer);
 
             if (Endian == Endian.Big) {
                 return BinaryPrimitives.ReadUInt16BigEndian(buffer);
@@ -141,9 +141,7 @@ namespace CeadLibrary.IO
         public int ReadInt32()
         {
             Span<byte> buffer = stackalloc byte[sizeof(int)];
-            if (_stream.Read(buffer) < sizeof(int)) {
-                throw new EndOfStreamException($"Could not read {sizeof(int)} bytes.");
-            }
+            Read(buffer);
 
             if (Endian == Endian.Big) {
                 return BinaryPrimitives.ReadInt32BigEndian(buffer);
@@ -156,9 +154,7 @@ namespace CeadLibrary.IO
         public uint ReadUInt32()
         {
             Span<byte> buffer = stackalloc byte[sizeof(uint)];
-            if (_stream.Read(buffer) < sizeof(uint)) {
-                throw new EndOfStreamException($"Could not read {sizeof(uint)} bytes.");
-            }
+            Read(buffer);
 
             if (Endian == Endian.Big) {
                 return BinaryPrimitives.ReadUInt32BigEndian(buffer);
@@ -171,9 +167,7 @@ namespace CeadLibrary.IO
         public long ReadInt64()
         {
             Span<byte> buffer = stackalloc byte[sizeof(long)];
-            if (_stream.Read(buffer) < sizeof(long)) {
-                throw new EndOfStreamException($"Could not read {sizeof(long)} bytes.");
-            }
+            Read(buffer);
 
             if (Endian == Endian.Big) {
                 return BinaryPrimitives.ReadInt64BigEndian(buffer);
@@ -186,9 +180,7 @@ namespace CeadLibrary.IO
         public ulong ReadUInt64()
         {
             Span<byte> buffer = stackalloc byte[sizeof(ulong)];
-            if (_stream.Read(buffer) < sizeof(ulong)) {
-                throw new EndOfStreamException($"Could not read {sizeof(ulong)} bytes.");
-            }
+            Read(buffer);
 
             if (Endian == Endian.Big) {
                 return BinaryPrimitives.ReadUInt64BigEndian(buffer);
@@ -201,9 +193,7 @@ namespace CeadLibrary.IO
         public Half ReadHalf()
         {
             Span<byte> buffer = stackalloc byte[2];
-            if (_stream.Read(buffer) < 2) {
-                throw new EndOfStreamException($"Could not read {2} bytes.");
-            }
+            Read(buffer);
 
             if (Endian == Endian.Big) {
                 return BinaryPrimitives.ReadHalfBigEndian(buffer);
@@ -216,9 +206,7 @@ namespace CeadLibrary.IO
         public float ReadSingle()
         {
             Span<byte> buffer = stackalloc byte[sizeof(float)];
-            if (_stream.Read(buffer) < sizeof(float)) {
-                throw new EndOfStreamException($"Could not read {sizeof(float)} bytes.");
-            }
+            Read(buffer);
 
             if (Endian == Endian.Big) {
                 return BinaryPrimitives.ReadSingleBigEndian(buffer);
@@ -231,9 +219,7 @@ namespace CeadLibrary.IO
         public bool ReadBool(BoolType type)
         {
             Span<byte> buffer = stackalloc byte[(int)type];
-            if (_stream.Read(buffer) < (int)type) {
-                throw new EndOfStreamException($"Could not read {(int)type} bytes.");
-            }
+            Read(buffer);
 
             for (int i = 0; i < (int)type; i++) {
                 if (buffer[i] != 0) {
@@ -247,9 +233,7 @@ namespace CeadLibrary.IO
         public byte ReadByte()
         {
             Span<byte> buffer = stackalloc byte[1];
-            if (_stream.Read(buffer) < 1) {
-                throw new EndOfStreamException($"Could not read {1} bytes.");
-            }
+            Read(buffer);
 
             return buffer[0];
         }
@@ -257,9 +241,7 @@ namespace CeadLibrary.IO
         public sbyte ReadSByte()
         {
             Span<byte> buffer = stackalloc byte[1];
-            if (_stream.Read(buffer) < 1) {
-                throw new EndOfStreamException($"Could not read {1} bytes.");
-            }
+            Read(buffer);
 
             return (sbyte)buffer[0];
         }
@@ -333,6 +315,16 @@ namespace CeadLibrary.IO
 
                 return objects;
             });
+        }
+
+        public bool CheckMagic(Span<byte> expectedMagic, bool throwException = true)
+        {
+            // Only allocate if the request size
+            // is more than 256 (which would be unusual)
+            Span<byte> receivedMagic = expectedMagic.Length > 256 ? new byte[expectedMagic.Length] : stackalloc byte[expectedMagic.Length];
+            Read(receivedMagic);
+
+            return receivedMagic.SequenceEqual(expectedMagic) || (throwException ? throw new InvalidMagicException(expectedMagic, receivedMagic) : false);
         }
     }
 }
