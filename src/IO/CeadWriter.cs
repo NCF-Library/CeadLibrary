@@ -253,6 +253,12 @@ namespace CeadLibrary.IO
             }
         }
 
+        public void WritePascalString(ReadOnlySpan<char> value)
+        {
+            Write(value, StringType.Int16CharCount);
+            Write((byte)0);
+        }
+
         public Action WriteObjectPtr(Action writeObject) => WriteObjectPtr<long>(writeObject);
         public Action WriteObjectPtr<PtrType>(Action writeObject) where PtrType : struct
         {
