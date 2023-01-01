@@ -275,7 +275,7 @@ namespace CeadLibrary.IO
                 _stream.Read(data);
                 return _encoding.GetString(data);
             }
-            else if (type == (StringType.Int16CharCount | StringType.Int32CharCount | StringType.PascalString)) {
+            else if (type == (StringType.Int16CharCount | StringType.Int32CharCount)) {
                 int length = type == StringType.Int32CharCount ? ReadInt32() : ReadInt16();
                 Span<byte> buffer = new byte[length];
                 _stream.Read(buffer);
