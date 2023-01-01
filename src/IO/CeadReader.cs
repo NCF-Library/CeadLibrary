@@ -222,7 +222,7 @@ namespace CeadLibrary.IO
             Read(buffer);
 
             if (exactMatch) {
-                return buffer.SequenceEqual(Endian = Endian.Big ? "\0\0\0\x01"u8 : "\x01\0\0\0"u8);
+                return buffer.SequenceEqual(Endian == Endian.Big ? "\0\0\0\x01"u8 : "\x01\0\0\0"u8);
             }
             
             for (int i = 0; i < (int)type; i++) {
