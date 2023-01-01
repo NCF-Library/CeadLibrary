@@ -259,7 +259,9 @@ namespace CeadLibrary.IO
             Write((byte)0);
         }
 
+        public Action WriteObjectPtr(ICeadObject obj) => WriteObjectPtr<long>(() => obj.Write(this));
         public Action WriteObjectPtr(Action writeObject) => WriteObjectPtr<long>(writeObject);
+        public Action WriteObjectPtr<PtrType>(ICeadObject obj) where PtrType : struct => WriteObjectPtr<PtrType>(() => obj.Write(this));
         public Action WriteObjectPtr<PtrType>(Action writeObject) where PtrType : struct
         {
             long offset = _stream.Position;
@@ -293,6 +295,14 @@ namespace CeadLibrary.IO
                 writePtr(pos);
                 _stream.Seek(pos, SeekOrigin.Begin);
                 writeObject();
+            }
+        }
+
+        public void WriteObjects<T>(IEnumerable<T> objects) where T : ICeadObject => WriteObjects(objects, (obj) => obj.Write(this));
+        public void WriteObjects<T>(IEnumerable<T> objects, Action<T> writeObject)
+        {
+            foreach (var obj in objects) {
+                writeObject(obj);
             }
         }
     }
