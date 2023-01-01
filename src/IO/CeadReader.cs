@@ -216,6 +216,22 @@ namespace CeadLibrary.IO
             }
         }
 
+        public byte ReadByte()
+        {
+            Span<byte> buffer = stackalloc byte[1];
+            Read(buffer);
+
+            return buffer[0];
+        }
+
+        public sbyte ReadSByte()
+        {
+            Span<byte> buffer = stackalloc byte[1];
+            Read(buffer);
+
+            return (sbyte)buffer[0];
+        }
+
         public bool ReadBool(BoolType type, bool exactMatch = false)
         {
             Span<byte> buffer = stackalloc byte[(int)type];
@@ -232,22 +248,6 @@ namespace CeadLibrary.IO
             }
 
             return false;
-        }
-
-        public byte ReadByte()
-        {
-            Span<byte> buffer = stackalloc byte[1];
-            Read(buffer);
-
-            return buffer[0];
-        }
-
-        public sbyte ReadSByte()
-        {
-            Span<byte> buffer = stackalloc byte[1];
-            Read(buffer);
-
-            return (sbyte)buffer[0];
         }
 
         public string ReadString(int length)
