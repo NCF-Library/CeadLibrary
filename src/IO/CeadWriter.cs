@@ -1,11 +1,17 @@
-﻿using CeadLibrary.Extensions;
+﻿#pragma warning disable CA1816 // Dispose methods should call SuppressFinalize
+#pragma warning disable CA1822 // Mark members as static
+
+using CeadLibrary.Extensions;
+using CeadLibrary.Generics;
 using System.Buffers;
 using System.Buffers.Binary;
+using System.Diagnostics;
 using System.Runtime.InteropServices;
 using System.Text;
 
 namespace CeadLibrary.IO
 {
+    [DebuggerDisplay("Position = {_stream.Position}, Length = {_stream.Length}, Endian = {Endian}, Encoding = {_encoding.WebName.ToUpper()}")]
     public class CeadWriter : IDisposable
     {
         private const int MaxArrayPoolRentalSize = 64 * 1024;
@@ -39,7 +45,7 @@ namespace CeadLibrary.IO
             }
         }
 
-        public List<(long Offset, int Size)> Pointers { get; set; }
+        public List<(long Offset, int Size)> Pointers { get; set; } = new();
         public Endian Endian { get; set; }
         public virtual Stream BaseStream {
             get {
@@ -55,9 +61,24 @@ namespace CeadLibrary.IO
             _stream.Seek((alignment - _stream.Position % alignment) % alignment, SeekOrigin.Current);
         }
 
-        public virtual void Write(Span<byte> buffer) => _stream.Write(buffer);
         public virtual void Write(byte[] buffer) => _stream.Write(buffer, 0, buffer.Length);
         public virtual void Write(byte[] buffer, int offset, int count) => _stream.Write(buffer, offset, count);
+        public virtual void Write(ReadOnlySpan<byte> buffer)
+        {
+            if (GetType() == typeof(CeadWriter)) {
+                _stream.Write(buffer);
+            }
+            else {
+                byte[] array = ArrayPool<byte>.Shared.Rent(buffer.Length);
+                try {
+                    buffer.CopyTo(array);
+                    Write(array, 0, buffer.Length);
+                }
+                finally {
+                    ArrayPool<byte>.Shared.Return(array);
+                }
+            }
+        }
 
         public void Write(decimal value)
         {
@@ -211,7 +232,8 @@ namespace CeadLibrary.IO
                 byte[] buffer = ArrayPool<byte>.Shared.Rent(value.Length * 3);
                 int actualByteCount = _encoding.GetBytes(value, buffer);
                 WritePrefix(actualByteCount);
-
+                Write(buffer, 0, actualByteCount);
+                ArrayPool<byte>.Shared.Return(buffer);
                 return;
             }
 

@@ -1,7 +1,4 @@
-﻿using System.Reflection.PortableExecutable;
-using System.Text;
-
-namespace CeadLibrary.IO
+﻿namespace CeadLibrary.IO
 {
     public enum Endian : ushort
     {

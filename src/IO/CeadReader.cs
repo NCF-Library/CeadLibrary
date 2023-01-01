@@ -1,18 +1,18 @@
-﻿using CeadLibrary.Extensions;
+﻿#pragma warning disable CA1816 // Dispose methods should call SuppressFinalize
+
+using CeadLibrary.Extensions;
 using CeadLibrary.Generics;
 using System.Buffers.Binary;
 using System.Diagnostics;
-using System.IO;
 using System.Text;
 
 namespace CeadLibrary.IO
 {
-    [DebuggerDisplay("Position = {_stream.Position}, Length = {_stream.Length}, Endian = {Endian}, Endoding = {_encoding.WebName.ToUpper()}")]
+    [DebuggerDisplay("Position = {_stream.Position}, Length = {_stream.Length}, Endian = {Endian}, Encoding = {_encoding.WebName.ToUpper()}")]
     public class CeadReader : IDisposable
     {
         private readonly Stream _stream;
         public Encoding _encoding;
-        private readonly byte[] _buffer;
         private readonly int _charSize;
         private readonly bool _leaveOpen;
         private bool _disposed;
@@ -30,19 +30,13 @@ namespace CeadLibrary.IO
 
             _stream = input;
             _encoding = encoding;
-
-            int minBufferSize = encoding.GetMaxByteCount(1);
-            if (minBufferSize < 16) {
-                minBufferSize = 16;
-            }
-
-            _buffer = new byte[minBufferSize];
             _charSize = encoding is UnicodeEncoding ? 2 : 1;
             _leaveOpen = leaveOpen;
 
             Endian = BitConverter.IsLittleEndian ? Endian.Little : Endian.Big;
         }
 
+        public Endian Endian { get; set; }
         public virtual Stream BaseStream => _stream;
 
         public virtual void Flush() => _stream.Flush();
@@ -88,8 +82,6 @@ namespace CeadLibrary.IO
             _stream.ReadExactly(buffer);
             return buffer;
         }
-
-        public Endian Endian { get; set; }
 
         public decimal ReadDecimal()
         {
