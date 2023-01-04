@@ -264,6 +264,10 @@ namespace CeadLibrary.IO
 
             ArrayPool<byte>.Shared.Return(rented);
 
+            if (type == StringType.ZeroTerminated) {
+                Write((byte)0);
+            }
+
             void WritePrefix(int actualByteCount)
             {
                 if (type == StringType.Int16CharCount) {
