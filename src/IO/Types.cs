@@ -1,5 +1,8 @@
-﻿namespace CeadLibrary.IO
+﻿using System.Text.Json.Serialization;
+
+namespace CeadLibrary.IO
 {
+    [JsonConverter(typeof(JsonStringEnumConverter))]
     public enum Endian : ushort
     {
         Big = 0xFFFE, Little = 0xFEFF
