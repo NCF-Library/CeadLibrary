@@ -279,6 +279,8 @@ namespace CeadLibrary.IO
 
         public T ReadObjectPtr<T>(SeekOrigin origin = SeekOrigin.Begin) where T : ICeadObject, new() => ReadObject<T>(ReadInt64(), origin);
         public T ReadObjectPtr<T>(Func<T> read, SeekOrigin origin = SeekOrigin.Begin) => ReadObject(ReadInt64(), origin, read);
+        public T ReadObject<T>() where T : ICeadObject, new() => ReadObject<T>(0, SeekOrigin.Current);
+        public T ReadObject<T>(Func<T> read) => ReadObject(0, SeekOrigin.Current, read);
         public T ReadObject<T>(long offset, SeekOrigin origin) where T : ICeadObject, new() => ReadObject(offset, origin, () => (T)new T().Read(this));
         public T ReadObject<T>(long offset, SeekOrigin origin, Func<T> read)
         {
@@ -300,6 +302,8 @@ namespace CeadLibrary.IO
 
         public T[] ReadObjectsPtr<T>(int count, SeekOrigin origin = SeekOrigin.Begin) where T : ICeadObject, new() => ReadObjects<T>(count, ReadInt64(), origin);
         public T[] ReadObjectsPtr<T>(int count, Func<T> readObject, SeekOrigin origin = SeekOrigin.Begin) => ReadObjects(count, ReadInt64(), origin, readObject);
+        public T[] ReadObjects<T>(int count) where T : ICeadObject, new() => ReadObjects(count, 0, SeekOrigin.Current, () => (T)new T().Read(this));
+        public T[] ReadObjects<T>(int count, Func<T> readObject) => ReadObjects(count, 0, SeekOrigin.Current, readObject);
         public T[] ReadObjects<T>(int count, long offset, SeekOrigin origin) where T : ICeadObject, new() => ReadObjects(count, offset, origin, () => (T)new T().Read(this));
         public T[] ReadObjects<T>(int count, long offset, SeekOrigin origin, Func<T> readObject)
         {
