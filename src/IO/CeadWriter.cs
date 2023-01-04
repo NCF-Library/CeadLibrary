@@ -281,6 +281,11 @@ namespace CeadLibrary.IO
             Write((byte)0);
         }
 
+        public SeekContext TemporarySeek(long offset, SeekOrigin origin)
+        {
+            return new(_stream, offset, origin);
+        }
+
         public Action WriteObjectPtr(ICeadObject obj) => WriteObjectPtr<long>(() => obj.Write(this));
         public Action WriteObjectPtr(Action writeObject) => WriteObjectPtr<long>(writeObject);
         public Action WriteObjectPtr<PtrType>(ICeadObject obj) where PtrType : struct => WriteObjectPtr<PtrType>(() => obj.Write(this));

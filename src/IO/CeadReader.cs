@@ -277,6 +277,11 @@ namespace CeadLibrary.IO
             throw new InvalidTypeException(typeof(StringType), type);
         }
 
+        public SeekContext TemporarySeek(long offset, SeekOrigin origin)
+        {
+            return new(_stream, offset, origin);
+        }
+
         public T ReadObjectPtr<T>(SeekOrigin origin = SeekOrigin.Begin) where T : ICeadObject, new() => ReadObject<T>(ReadInt64(), origin);
         public T ReadObjectPtr<T>(Func<T> read, SeekOrigin origin = SeekOrigin.Begin) => ReadObject(ReadInt64(), origin, read);
         public T ReadObject<T>() where T : ICeadObject, new() => ReadObject<T>(0, SeekOrigin.Current);
