@@ -277,6 +277,13 @@ namespace CeadLibrary.IO
             throw new InvalidTypeException(typeof(StringType), type);
         }
 
+        public Endian ReadByteOrderMark()
+        {
+            ushort bom = ReadUInt16();
+            Endian = Endian == Endian.Little ? (Endian)bom : bom == 0xFEFF ? Endian.Big : Endian.Little;
+            return Endian;
+        }
+
         public SeekContext TemporarySeek(long offset, SeekOrigin origin)
         {
             return new(_stream, offset, origin);
