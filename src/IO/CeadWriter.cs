@@ -234,6 +234,7 @@ namespace CeadLibrary.IO
                 WritePrefix(actualByteCount);
                 Write(buffer, 0, actualByteCount);
                 ArrayPool<byte>.Shared.Return(buffer);
+                WritePostfix();
                 return;
             }
 
@@ -246,6 +247,7 @@ namespace CeadLibrary.IO
                 _encoding.GetBytes(value, rented);
                 Write(rented, 0, byteCount);
                 ArrayPool<byte>.Shared.Return(rented);
+                WritePostfix();
                 return;
             }
 
@@ -263,10 +265,7 @@ namespace CeadLibrary.IO
             } while (!completed);
 
             ArrayPool<byte>.Shared.Return(rented);
-
-            if (type == StringType.ZeroTerminated) {
-                Write((byte)0);
-            }
+            WritePostfix();
 
             void WritePrefix(int actualByteCount)
             {
@@ -275,6 +274,13 @@ namespace CeadLibrary.IO
                 }
                 else if (type == StringType.Int32CharCount) {
                     Write((ushort)actualByteCount);
+                }
+            }
+
+            void WritePostfix()
+            {
+                if (type == StringType.ZeroTerminated) {
+                    Write((byte)0);
                 }
             }
         }
