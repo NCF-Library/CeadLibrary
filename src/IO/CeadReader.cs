@@ -83,7 +83,7 @@ namespace CeadLibrary.IO
             return buffer;
         }
 
-        public decimal ReadDecimal()
+        public virtual decimal ReadDecimal()
         {
             Span<byte> buffer = stackalloc byte[sizeof(decimal)];
             Read(buffer);
@@ -91,7 +91,7 @@ namespace CeadLibrary.IO
             return DecimalExtension.ToDecimal(buffer);
         }
 
-        public double ReadDouble()
+        public virtual double ReadDouble()
         {
             Span<byte> buffer = stackalloc byte[sizeof(double)];
             Read(buffer);
@@ -104,7 +104,7 @@ namespace CeadLibrary.IO
             }
         }
 
-        public short ReadInt16()
+        public virtual short ReadInt16()
         {
             Span<byte> buffer = stackalloc byte[sizeof(short)];
             Read(buffer);
@@ -117,7 +117,7 @@ namespace CeadLibrary.IO
             }
         }
 
-        public ushort ReadUInt16()
+        public virtual ushort ReadUInt16()
         {
             Span<byte> buffer = stackalloc byte[sizeof(ushort)];
             Read(buffer);
@@ -130,7 +130,7 @@ namespace CeadLibrary.IO
             }
         }
 
-        public int ReadInt32()
+        public virtual int ReadInt32()
         {
             Span<byte> buffer = stackalloc byte[sizeof(int)];
             Read(buffer);
@@ -143,7 +143,7 @@ namespace CeadLibrary.IO
             }
         }
 
-        public uint ReadUInt32()
+        public virtual uint ReadUInt32()
         {
             Span<byte> buffer = stackalloc byte[sizeof(uint)];
             Read(buffer);
@@ -156,7 +156,7 @@ namespace CeadLibrary.IO
             }
         }
 
-        public long ReadInt64()
+        public virtual long ReadInt64()
         {
             Span<byte> buffer = stackalloc byte[sizeof(long)];
             Read(buffer);
@@ -169,7 +169,7 @@ namespace CeadLibrary.IO
             }
         }
 
-        public ulong ReadUInt64()
+        public virtual ulong ReadUInt64()
         {
             Span<byte> buffer = stackalloc byte[sizeof(ulong)];
             Read(buffer);
@@ -182,7 +182,7 @@ namespace CeadLibrary.IO
             }
         }
 
-        public Half ReadHalf()
+        public virtual Half ReadHalf()
         {
             Span<byte> buffer = stackalloc byte[2];
             Read(buffer);
@@ -195,7 +195,7 @@ namespace CeadLibrary.IO
             }
         }
 
-        public float ReadSingle()
+        public virtual float ReadSingle()
         {
             Span<byte> buffer = stackalloc byte[sizeof(float)];
             Read(buffer);
@@ -208,7 +208,7 @@ namespace CeadLibrary.IO
             }
         }
 
-        public byte ReadByte()
+        public virtual byte ReadByte()
         {
             Span<byte> buffer = stackalloc byte[1];
             Read(buffer);
@@ -216,7 +216,7 @@ namespace CeadLibrary.IO
             return buffer[0];
         }
 
-        public sbyte ReadSByte()
+        public virtual sbyte ReadSByte()
         {
             Span<byte> buffer = stackalloc byte[1];
             Read(buffer);
@@ -224,7 +224,7 @@ namespace CeadLibrary.IO
             return (sbyte)buffer[0];
         }
 
-        public bool ReadBool(BoolType type, bool exactMatch = false)
+        public virtual bool ReadBool(BoolType type, bool exactMatch = false)
         {
             Span<byte> buffer = stackalloc byte[(int)type];
             Read(buffer);
@@ -242,14 +242,14 @@ namespace CeadLibrary.IO
             return false;
         }
 
-        public string ReadString(int length)
+        public virtual string ReadString(int length)
         {
             Span<byte> buffer = new byte[length];
-            _stream.Read(buffer);
+            Read(buffer);
             return _encoding.GetString(buffer);
         }
 
-        public string ReadString(StringType type)
+        public virtual string ReadString(StringType type)
         {
             if (type == StringType.ZeroTerminated) {
                 int length = 0;
@@ -263,38 +263,38 @@ namespace CeadLibrary.IO
                 }
 
                 Span<byte> data = new byte[length];
-                _stream.Seek(-(length + 1), SeekOrigin.Current);
-                _stream.Read(data);
+                Seek(-(length + 1), SeekOrigin.Current);
+                Read(data);
                 return _encoding.GetString(data);
             }
             else if (type == StringType.Int16CharCount || type == StringType.Int32CharCount) {
                 int length = type == StringType.Int32CharCount ? ReadInt32() : ReadInt16();
                 Span<byte> buffer = new byte[length];
-                _stream.Read(buffer);
+                Read(buffer);
                 return _encoding.GetString(buffer);
             }
 
             throw new InvalidTypeException(typeof(StringType), type);
         }
 
-        public Endian ReadByteOrderMark()
+        public virtual Endian ReadByteOrderMark()
         {
             ushort bom = ReadUInt16();
             Endian = Endian == Endian.Little ? (Endian)bom : bom == 0xFEFF ? Endian.Big : Endian.Little;
             return Endian;
         }
 
-        public SeekContext TemporarySeek(long offset, SeekOrigin origin)
+        public virtual SeekContext TemporarySeek(long offset, SeekOrigin origin)
         {
             return new(_stream, offset, origin);
         }
 
-        public T ReadObjectPtr<T>(SeekOrigin origin = SeekOrigin.Begin) where T : ICeadObject, new() => ReadObject<T>(ReadInt64(), origin);
-        public T ReadObjectPtr<T>(Func<T> read, SeekOrigin origin = SeekOrigin.Begin) => ReadObject(ReadInt64(), origin, read);
-        public T ReadObject<T>() where T : ICeadObject, new() => ReadObject<T>(0, SeekOrigin.Current);
-        public T ReadObject<T>(Func<T> read) => ReadObject(0, SeekOrigin.Current, read);
-        public T ReadObject<T>(long offset, SeekOrigin origin) where T : ICeadObject, new() => ReadObject(offset, origin, () => (T)new T().Read(this));
-        public T ReadObject<T>(long offset, SeekOrigin origin, Func<T> read)
+        public virtual T ReadObjectPtr<T>(SeekOrigin origin = SeekOrigin.Begin) where T : ICeadObject, new() => ReadObject<T>(ReadInt64(), origin);
+        public virtual T ReadObjectPtr<T>(Func<T> read, SeekOrigin origin = SeekOrigin.Begin) => ReadObject(ReadInt64(), origin, read);
+        public virtual T ReadObject<T>() where T : ICeadObject, new() => ReadObject<T>(0, SeekOrigin.Current);
+        public virtual T ReadObject<T>(Func<T> read) => ReadObject(0, SeekOrigin.Current, read);
+        public virtual T ReadObject<T>(long offset, SeekOrigin origin) where T : ICeadObject, new() => ReadObject(offset, origin, () => (T)new T().Read(this));
+        public virtual T ReadObject<T>(long offset, SeekOrigin origin, Func<T> read)
         {
             T results;
 
@@ -304,20 +304,20 @@ namespace CeadLibrary.IO
             }
             else {
                 long origPos = _stream.Position;
-                _stream.Seek(offset, origin);
+                Seek(offset, origin);
                 results = read();
-                _stream.Seek(origPos, origin);
+                Seek(origPos, origin);
             }
 
             return results;
         }
 
-        public T[] ReadObjectsPtr<T>(int count, SeekOrigin origin = SeekOrigin.Begin) where T : ICeadObject, new() => ReadObjects<T>(count, ReadInt64(), origin);
-        public T[] ReadObjectsPtr<T>(int count, Func<T> readObject, SeekOrigin origin = SeekOrigin.Begin) => ReadObjects(count, ReadInt64(), origin, readObject);
-        public T[] ReadObjects<T>(int count) where T : ICeadObject, new() => ReadObjects(count, 0, SeekOrigin.Current, () => (T)new T().Read(this));
-        public T[] ReadObjects<T>(int count, Func<T> readObject) => ReadObjects(count, 0, SeekOrigin.Current, readObject);
-        public T[] ReadObjects<T>(int count, long offset, SeekOrigin origin) where T : ICeadObject, new() => ReadObjects(count, offset, origin, () => (T)new T().Read(this));
-        public T[] ReadObjects<T>(int count, long offset, SeekOrigin origin, Func<T> readObject)
+        public virtual T[] ReadObjectsPtr<T>(int count, SeekOrigin origin = SeekOrigin.Begin) where T : ICeadObject, new() => ReadObjects<T>(count, ReadInt64(), origin);
+        public virtual T[] ReadObjectsPtr<T>(int count, Func<T> readObject, SeekOrigin origin = SeekOrigin.Begin) => ReadObjects(count, ReadInt64(), origin, readObject);
+        public virtual T[] ReadObjects<T>(int count) where T : ICeadObject, new() => ReadObjects(count, 0, SeekOrigin.Current, () => (T)new T().Read(this));
+        public virtual T[] ReadObjects<T>(int count, Func<T> readObject) => ReadObjects(count, 0, SeekOrigin.Current, readObject);
+        public virtual T[] ReadObjects<T>(int count, long offset, SeekOrigin origin) where T : ICeadObject, new() => ReadObjects(count, offset, origin, () => (T)new T().Read(this));
+        public virtual T[] ReadObjects<T>(int count, long offset, SeekOrigin origin, Func<T> readObject)
         {
             T[] objects = new T[count];
 
@@ -330,7 +330,7 @@ namespace CeadLibrary.IO
             });
         }
 
-        public bool CheckMagic(ReadOnlySpan<byte> expectedMagic, bool throwException = true)
+        public virtual bool CheckMagic(ReadOnlySpan<byte> expectedMagic, bool throwException = true)
         {
             // Only allocate if the request size
             // is more than 256 (which would be unusual)

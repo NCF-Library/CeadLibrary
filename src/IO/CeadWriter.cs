@@ -45,7 +45,6 @@ namespace CeadLibrary.IO
             }
         }
 
-        public List<(long Offset, int Size)> Pointers { get; set; } = new();
         public Endian Endian { get; set; }
         public virtual Stream BaseStream {
             get {
@@ -80,11 +79,11 @@ namespace CeadLibrary.IO
             }
         }
 
-        public void Write(decimal value)
+        public virtual void Write(decimal value)
         {
             Span<byte> buffer = stackalloc byte[sizeof(decimal)];
             DecimalExtension.GetBytes(value, buffer);
-            _stream.Write(buffer);
+            Write(buffer);
         }
 
         public void Write(double value)
@@ -97,10 +96,10 @@ namespace CeadLibrary.IO
                 BinaryPrimitives.WriteDoubleLittleEndian(buffer, value);
             }
 
-            _stream.Write(buffer);
+            Write(buffer);
         }
 
-        public void Write(short value)
+        public virtual void Write(short value)
         {
             Span<byte> buffer = stackalloc byte[sizeof(short)];
             if (Endian == Endian.Big) {
@@ -110,10 +109,10 @@ namespace CeadLibrary.IO
                 BinaryPrimitives.WriteInt16LittleEndian(buffer, value);
             }
 
-            _stream.Write(buffer);
+            Write(buffer);
         }
 
-        public void Write(ushort value)
+        public virtual void Write(ushort value)
         {
             Span<byte> buffer = stackalloc byte[sizeof(ushort)];
             if (Endian == Endian.Big) {
@@ -123,10 +122,10 @@ namespace CeadLibrary.IO
                 BinaryPrimitives.WriteUInt16LittleEndian(buffer, value);
             }
 
-            _stream.Write(buffer);
+            Write(buffer);
         }
 
-        public void Write(int value)
+        public virtual void Write(int value)
         {
             Span<byte> buffer = stackalloc byte[sizeof(int)];
             if (Endian == Endian.Big) {
@@ -136,10 +135,10 @@ namespace CeadLibrary.IO
                 BinaryPrimitives.WriteInt32LittleEndian(buffer, value);
             }
 
-            _stream.Write(buffer);
+            Write(buffer);
         }
 
-        public void Write(uint value)
+        public virtual void Write(uint value)
         {
             Span<byte> buffer = stackalloc byte[sizeof(uint)];
             if (Endian == Endian.Big) {
@@ -149,10 +148,10 @@ namespace CeadLibrary.IO
                 BinaryPrimitives.WriteUInt32LittleEndian(buffer, value);
             }
 
-            _stream.Write(buffer);
+            Write(buffer);
         }
 
-        public void Write(long value)
+        public virtual void Write(long value)
         {
             Span<byte> buffer = stackalloc byte[sizeof(long)];
             if (Endian == Endian.Big) {
@@ -162,10 +161,10 @@ namespace CeadLibrary.IO
                 BinaryPrimitives.WriteInt64LittleEndian(buffer, value);
             }
 
-            _stream.Write(buffer);
+            Write(buffer);
         }
 
-        public void Write(ulong value)
+        public virtual void Write(ulong value)
         {
             Span<byte> buffer = stackalloc byte[sizeof(ulong)];
             if (Endian == Endian.Big) {
@@ -175,10 +174,10 @@ namespace CeadLibrary.IO
                 BinaryPrimitives.WriteUInt64LittleEndian(buffer, value);
             }
 
-            _stream.Write(buffer);
+            Write(buffer);
         }
 
-        public void Write(Half value)
+        public virtual void Write(Half value)
         {
             Span<byte> buffer = stackalloc byte[2];
             if (Endian == Endian.Big) {
@@ -188,10 +187,10 @@ namespace CeadLibrary.IO
                 BinaryPrimitives.WriteHalfLittleEndian(buffer, value);
             }
 
-            _stream.Write(buffer);
+            Write(buffer);
         }
 
-        public void Write(float value)
+        public virtual void Write(float value)
         {
             Span<byte> buffer = stackalloc byte[sizeof(float)];
             if (Endian == Endian.Big) {
@@ -201,32 +200,32 @@ namespace CeadLibrary.IO
                 BinaryPrimitives.WriteSingleLittleEndian(buffer, value);
             }
 
-            _stream.Write(buffer);
+            Write(buffer);
         }
 
-        public void Write(byte value)
+        public virtual void Write(byte value)
         {
             _stream.WriteByte(value);
         }
 
-        public void Write(sbyte value)
+        public virtual void Write(sbyte value)
         {
             _stream.WriteByte((byte)value);
         }
 
-        public void Write(bool value, BoolType type = BoolType.Byte)
+        public virtual void Write(bool value, BoolType type = BoolType.Byte)
         {
             if (value) {
                 Span<byte> buffer = stackalloc byte[(int)type];
                 buffer[Endian == Endian.Big ? (^1) : 0] = 0x01;
-                _stream.Write(buffer);
+                Write(buffer);
             }
             else {
-                _stream.Seek((int)type, SeekOrigin.Current);
+                Seek((int)type, SeekOrigin.Current);
             }
         }
 
-        public void Write(ReadOnlySpan<char> value, StringType? type = null)
+        public virtual void Write(ReadOnlySpan<char> value, StringType? type = null)
         {
             if (value.Length <= MaxArrayPoolRentalSize / 3) {
                 byte[] buffer = ArrayPool<byte>.Shared.Rent(value.Length * 3);
@@ -285,21 +284,21 @@ namespace CeadLibrary.IO
             }
         }
 
-        public void WritePascalString(ReadOnlySpan<char> value)
+        public virtual void WritePascalString(ReadOnlySpan<char> value)
         {
             Write(value, StringType.Int16CharCount);
             Write((byte)0);
         }
 
-        public SeekContext TemporarySeek(long offset, SeekOrigin origin)
+        public virtual SeekContext TemporarySeek(long offset, SeekOrigin origin)
         {
             return new(_stream, offset, origin);
         }
 
-        public Action WriteObjectPtr(ICeadObject obj) => WriteObjectPtr<long>(() => obj.Write(this));
-        public Action WriteObjectPtr(Action writeObject) => WriteObjectPtr<long>(writeObject);
-        public Action WriteObjectPtr<PtrType>(ICeadObject obj) where PtrType : struct => WriteObjectPtr<PtrType>(() => obj.Write(this));
-        public Action WriteObjectPtr<PtrType>(Action writeObject) where PtrType : struct
+        public virtual Action WriteObjectPtr(ICeadObject obj) => WriteObjectPtr<long>(() => obj.Write(this));
+        public virtual Action WriteObjectPtr(Action writeObject) => WriteObjectPtr<long>(writeObject);
+        public virtual Action WriteObjectPtr<PtrType>(ICeadObject obj) where PtrType : struct => WriteObjectPtr<PtrType>(() => obj.Write(this));
+        public virtual Action WriteObjectPtr<PtrType>(Action writeObject) where PtrType : struct
         {
             long offset = _stream.Position;
 
@@ -317,7 +316,7 @@ namespace CeadLibrary.IO
             };
 
             Span<byte> buffer = stackalloc byte[Marshal.SizeOf<PtrType>()];
-            _stream.Write(buffer);
+            Write(buffer);
 
             return writePtr;
 
@@ -328,15 +327,15 @@ namespace CeadLibrary.IO
                     throw new OverflowException($"Could not pack the value '{offset}' into a {typeof(PtrType)} struct ({ptrTypeMaxSize})");
                 }
 
-                _stream.Seek(offset, SeekOrigin.Begin);
+                Seek(offset, SeekOrigin.Begin);
                 writePtr(pos);
-                _stream.Seek(pos, SeekOrigin.Begin);
+                Seek(pos, SeekOrigin.Begin);
                 writeObject();
             }
         }
 
-        public void WriteObjects<T>(IEnumerable<T> objects) where T : ICeadObject => WriteObjects(objects, (obj) => obj.Write(this));
-        public void WriteObjects<T>(IEnumerable<T> objects, Action<T> writeObject)
+        public virtual void WriteObjects<T>(IEnumerable<T> objects) where T : ICeadObject => WriteObjects(objects, (obj) => obj.Write(this));
+        public virtual void WriteObjects<T>(IEnumerable<T> objects, Action<T> writeObject)
         {
             foreach (var obj in objects) {
                 writeObject(obj);
