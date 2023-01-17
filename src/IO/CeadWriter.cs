@@ -1,5 +1,4 @@
 ﻿#pragma warning disable CA1816 // Dispose methods should call SuppressFinalize
-#pragma warning disable CA1822 // Mark members as static
 
 using CeadLibrary.Extensions;
 using CeadLibrary.Generics;
