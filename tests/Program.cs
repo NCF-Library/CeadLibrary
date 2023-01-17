@@ -63,3 +63,15 @@ using Tests.Extensions;
 /// 
 /// BenchmarkRunner.Run<WriterBenchmark>();
 /// 
+
+
+//
+// Reverse Binary Benchmark
+
+/// RevBinBenchmark benchmark = new();
+/// 
+/// Console.WriteLine(benchmark.RevOnString());
+/// Console.WriteLine(string.Join("", benchmark.RevOnSpan().ToArray().Select(x => Convert.ToString(x, 2).PadLeft(8, '0'))));
+/// 
+/// BenchmarkRunner.Run<RevBinBenchmark>();
+/// 
