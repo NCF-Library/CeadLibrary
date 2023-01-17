@@ -12,6 +12,7 @@ namespace CeadLibrary.Writers
         private readonly Dictionary<string, Action> _tasks = new();
         private readonly Dictionary<int, List<long>> _ptrsMap = new();
         private readonly Dictionary<string, List<Action>> _strings = new();
+        private readonly Dictionary<string, List<Action>> _reserved = new();
 
         public RltWriter(Stream stream) : base(stream)
         {
@@ -32,10 +33,10 @@ namespace CeadLibrary.Writers
         public override Action WriteObjectPtr<PtrType>(ICeadObject obj) where PtrType : struct => WriteObjectPtr<PtrType>(() => obj.Write(this), 0);
         public override Action WriteObjectPtr<PtrType>(Action writeObject) where PtrType : struct => WriteObjectPtr<PtrType>(writeObject, 0);
 
-        public Action WriteObjectPtr(ICeadObject obj, int rltSection) => WriteObjectPtr<long>(() => obj.Write(this), rltSection);
-        public Action WriteObjectPtr(Action writeObject, int rltSection) => WriteObjectPtr<long>(writeObject, rltSection);
-        public Action WriteObjectPtr<PtrType>(ICeadObject obj, int rltSection) where PtrType : struct => WriteObjectPtr<PtrType>(() => obj.Write(this), rltSection);
-        public Action WriteObjectPtr<PtrType>(Action writeObject, int rltSection) where PtrType : struct
+        public Action WriteObjectPtr(ICeadObject obj, int rltSection = 0, string? key = null) => WriteObjectPtr<long>(() => obj.Write(this), rltSection, key);
+        public Action WriteObjectPtr(Action writeObject, int rltSection = 0, string? key = null) => WriteObjectPtr<long>(writeObject, rltSection, key);
+        public Action WriteObjectPtr<PtrType>(ICeadObject obj, int rltSection = 0, string? key = null) where PtrType : struct => WriteObjectPtr<PtrType>(() => obj.Write(this), rltSection, key);
+        public Action WriteObjectPtr<PtrType>(Action writeObject, int rltSection = 0, string? key = null) where PtrType : struct
         {
             long offset = _stream.Position;
 
@@ -54,6 +55,14 @@ namespace CeadLibrary.Writers
 
             Span<byte> buffer = stackalloc byte[Marshal.SizeOf<PtrType>()];
             Write(buffer);
+
+            if (key != null) {
+                if (!_reserved.ContainsKey(key)) {
+                    _reserved.Add(key, new());
+                }
+
+                _reserved[key].Add(writePtr);
+            }
 
             return writePtr;
 
@@ -75,16 +84,16 @@ namespace CeadLibrary.Writers
             }
         }
 
-        public Action WriteObjectPtrIf(bool condition, ICeadObject obj, int rltSection = 0, bool register = false, bool writeNullPtr = true)
-            => WriteObjectPtrIf<long>(condition, () => obj.Write(this), rltSection, register, writeNullPtr);
-        public Action WriteObjectPtrIf(bool condition, Action writeObject, int rltSection = 0, bool register = false, bool writeNullPtr = true)
-            => WriteObjectPtrIf<long>(condition, writeObject, rltSection, register, writeNullPtr);
-        public Action WriteObjectPtrIf<PtrType>(bool condition, ICeadObject obj, int rltSection = 0, bool register = false, bool writeNullPtr = true) where PtrType : struct
-            => WriteObjectPtrIf<PtrType>(condition, () => obj.Write(this), rltSection, register, writeNullPtr);
-        public Action WriteObjectPtrIf<PtrType>(bool condition, Action writeObject, int rltSection = 0, bool register = false, bool writeNullPtr = true) where PtrType : struct
+        public Action WriteObjectPtrIf(bool condition, ICeadObject obj, int rltSection = 0, string? key = null, bool register = false, bool writeNullPtr = true)
+            => WriteObjectPtrIf<long>(condition, () => obj.Write(this), rltSection, key, register, writeNullPtr);
+        public Action WriteObjectPtrIf(bool condition, Action writeObject, int rltSection = 0, string? key = null, bool register = false, bool writeNullPtr = true)
+            => WriteObjectPtrIf<long>(condition, writeObject, rltSection, key, register, writeNullPtr);
+        public Action WriteObjectPtrIf<PtrType>(bool condition, ICeadObject obj, int rltSection = 0, string? key = null, bool register = false, bool writeNullPtr = true) where PtrType : struct
+            => WriteObjectPtrIf<PtrType>(condition, () => obj.Write(this), rltSection, key, register, writeNullPtr);
+        public Action WriteObjectPtrIf<PtrType>(bool condition, Action writeObject, int rltSection = 0, string? key = null, bool register = false, bool writeNullPtr = true) where PtrType : struct
         {
             if (condition) {
-                return WriteObjectPtr<PtrType>(writeObject, rltSection);
+                return WriteObjectPtr<PtrType>(writeObject, rltSection, key);
             }
 
             if (writeNullPtr) {
