@@ -1,8 +1,6 @@
 ﻿using CeadLibrary.Generics;
 using CeadLibrary.IO;
-using Microsoft.VisualBasic;
 using System.Runtime.InteropServices;
-using System.Text;
 
 namespace CeadLibrary.Writers
 {
@@ -11,14 +9,14 @@ namespace CeadLibrary.Writers
     /// </summary>
     public class RltWriter : CeadWriter, IDisposable
     {
-        private readonly Dictionary<string, Action> _tasks = new();
-        private readonly Dictionary<int, List<long>> _ptrsMap = new();
-        private readonly Dictionary<string, List<Action>> _strings = new();
-        private readonly Dictionary<string, List<Action>> _reserved = new();
+        protected readonly Dictionary<string, Action> _tasks = new();
+        protected readonly Dictionary<int, List<long>> _ptrsMap = new();
+        protected readonly Dictionary<string, List<Action>> _strings = new();
+        protected readonly Dictionary<string, List<Action>> _reserved = new();
 
         public RltWriter(Stream stream) : base(stream) { }
 
-        private static void Register<TKey, TValue>(Dictionary<TKey, List<TValue>> src, TKey key, TValue value)
+        protected static void Register<TKey, TValue>(Dictionary<TKey, List<TValue>> src, TKey key, TValue value)
         {
             if (!src.ContainsKey(key)) {
                 src.Add(key, new());
@@ -134,7 +132,7 @@ namespace CeadLibrary.Writers
             void Write() => WriteObjectPtr<PtrType>(addToStrPool ? () => { } : () => base.WritePascalString(strcpy), rltSection);
         }
 
-        public void WriteStringPool(int alignment = 2)
+        public virtual void WriteStringPool(int alignment = 2)
         {
             Write("STR "u8);
             Write(0U);
