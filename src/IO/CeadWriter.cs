@@ -17,7 +17,7 @@ namespace CeadLibrary.IO
         private const int MaxArrayPoolRentalSize = 64 * 1024;
 
         protected Stream _stream;
-        private readonly Encoding _encoding;
+        protected readonly Encoding _encoding;
         private readonly bool _leaveOpen;
 
         public CeadWriter(Stream output) : this(output, Encoding.UTF8, false) { }

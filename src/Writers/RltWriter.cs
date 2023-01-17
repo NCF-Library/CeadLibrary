@@ -1,6 +1,8 @@
 ﻿using CeadLibrary.Generics;
 using CeadLibrary.IO;
+using Microsoft.VisualBasic;
 using System.Runtime.InteropServices;
+using System.Text;
 
 namespace CeadLibrary.Writers
 {
@@ -14,18 +16,20 @@ namespace CeadLibrary.Writers
         private readonly Dictionary<string, List<Action>> _strings = new();
         private readonly Dictionary<string, List<Action>> _reserved = new();
 
-        public RltWriter(Stream stream) : base(stream)
-        {
+        public RltWriter(Stream stream) : base(stream) { }
 
+        private static void Register<TKey, TValue>(Dictionary<TKey, List<TValue>> src, TKey key, TValue value)
+        {
+            if (!src.ContainsKey(key)) {
+                src.Add(key, new());
+            }
+
+            src[key].Add(value);
         }
 
         public void RegisterPtr(long offset, int rltSection = 0)
         {
-            if (!_ptrsMap.ContainsKey(rltSection)) {
-                _ptrsMap.Add(rltSection, new());
-            }
-
-            _ptrsMap[rltSection].Add(offset);
+            Register(_ptrsMap, rltSection, offset);
         }
 
         public override Action WriteObjectPtr(ICeadObject obj) => WriteObjectPtr<long>(() => obj.Write(this), 0);
@@ -57,11 +61,7 @@ namespace CeadLibrary.Writers
             Write(buffer);
 
             if (key != null) {
-                if (!_reserved.ContainsKey(key)) {
-                    _reserved.Add(key, new());
-                }
-
-                _reserved[key].Add(writePtr);
+                Register(_reserved, key, writePtr);
             }
 
             return writePtr;
@@ -106,6 +106,64 @@ namespace CeadLibrary.Writers
             }
 
             return () => { };
+        }
+
+        public Action WriteStringPtr(ReadOnlySpan<char> value, StringType? type = null, int rltSection = 0, bool addToStrPool = true) => WriteStringPtr<long>(value, type, rltSection, addToStrPool);
+        public Action WriteStringPtr<PtrType>(ReadOnlySpan<char> value, StringType? type = null, int rltSection = 0, bool addToStrPool = true) where PtrType : struct
+        {
+            string strcpy = value.ToString();
+            if (addToStrPool) {
+                Register(_strings, strcpy, Write);
+            }
+
+            return Write;
+
+            void Write() => WriteObjectPtr<PtrType>(addToStrPool ? () => { } : () => base.Write(strcpy, type), rltSection);
+        }
+
+        public Action WritePascalStringPtr(ReadOnlySpan<char> value, int rltSection = 0, bool addToStrPool = true) => WritePascalStringPtr<long>(value, rltSection, addToStrPool);
+        public Action WritePascalStringPtr<PtrType>(ReadOnlySpan<char> value, int rltSection = 0, bool addToStrPool = true) where PtrType : struct
+        {
+            string strcpy = value.ToString();
+            if (addToStrPool) {
+                Register(_strings, strcpy, Write);
+            }
+
+            return Write;
+
+            void Write() => WriteObjectPtr<PtrType>(addToStrPool ? () => { } : () => base.WritePascalString(strcpy), rltSection);
+        }
+
+        public void WriteStringPool(int alignment = 2)
+        {
+            Write("STR "u8);
+            Write(0U);
+            Write(0L);
+            Write(_strings.Count - 1);
+
+            Span<byte> ReverseBinary(ReadOnlySpan<char> str)
+            {
+                Span<byte> data = new byte[str.Length * 3];
+                int size = _encoding.GetBytes(str, data);
+                data = data[..size];
+
+                for (int i = 0; i < size; i++) {
+                    data[i] = (byte)((data[i] * 0x0202020202ul & 0x010884422010ul) % 1023);
+                }
+
+                data.Reverse();
+                return data;
+            }
+
+            foreach (var str in _strings.OrderBy(x => ReverseBinary(x.Key))) {
+                long offset = _stream.Position;
+                foreach (var insertAction in str.Value) {
+                    insertAction();
+                }
+
+                WritePascalString(str.Key);
+                Align(alignment);
+            }
         }
     }
 }
