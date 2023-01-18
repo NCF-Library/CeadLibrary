@@ -16,7 +16,7 @@ namespace CeadLibrary.Writers
 
         public RltWriter(Stream stream) : base(stream) { }
 
-        protected static void Register<TKey, TValue>(Dictionary<TKey, List<TValue>> src, TKey key, TValue value)
+        protected static void Register<TKey, TValue>(Dictionary<TKey, List<TValue>> src, TKey key, TValue value) where TKey : notnull
         {
             if (!src.ContainsKey(key)) {
                 src.Add(key, new());
@@ -139,7 +139,7 @@ namespace CeadLibrary.Writers
             Write(0L);
             Write(_strings.Count - 1);
 
-            Span<byte> ReverseBinary(ReadOnlySpan<char> str)
+            byte[] ReverseBinary(ReadOnlySpan<char> str)
             {
                 Span<byte> data = new byte[str.Length * 3];
                 int size = _encoding.GetBytes(str, data);
@@ -150,7 +150,7 @@ namespace CeadLibrary.Writers
                 }
 
                 data.Reverse();
-                return data;
+                return data.ToArray();
             }
 
             foreach (var str in _strings.OrderBy(x => ReverseBinary(x.Key))) {
@@ -161,6 +161,63 @@ namespace CeadLibrary.Writers
 
                 WritePascalString(str.Key);
                 Align(alignment);
+            }
+        }
+
+        public virtual void WriteRelocationTable(uint endOfData, ReadOnlySpan<byte> magic = default)
+        {
+            // Skip header and sections
+            // to write after data collection
+            long rltStart = _stream.Position;
+            Seek(16 + 24 * _ptrsMap.Count, SeekOrigin.Current);
+
+            int index = 0;
+            List<(long, int)> entryCountList = new();
+            foreach ((_, var ptrSource) in _ptrsMap) {
+                List<long> ptrs = ptrSource.Distinct().ToList();
+                IEnumerable<long> pointerList = ptrs.Order();
+
+                int entryCount = 0;
+                foreach (var ptr in pointerList) {
+                    if (!ptrs.Contains(ptr)) {
+                        continue;
+                    }
+
+                    int flag = 0;
+                    for (int i = 0; i < 32; i++) {
+                        long address = ptr + 8 * i;
+                        if (ptrs.Contains(address)) {
+                            flag |= 1 << i;
+                            ptrs.Remove(address);
+                        }
+                    }
+
+                    Write((uint)ptr);
+                    Write(flag);
+
+                    entryCount++;
+                    index++;
+                }
+
+                entryCountList.Add((entryCount, index));
+            }
+
+            Seek(rltStart, SeekOrigin.Begin);
+            if (magic == default) {
+                magic = "RELT"u8;
+            }
+
+            Write(magic);
+            Write((uint)BaseStream.Position - 4);
+            Write(_ptrsMap.Count); // Assume each manged entry doesn't exceed 2^32 - 1
+            Write(0U);
+
+            foreach ((var entryCount, var _index) in entryCountList) {
+                Write(0L); // base ptr
+                Write(0U); // base ptr offset
+                Write(0U); // section data size
+                Write(_index);
+                Write(entryCount);
             }
         }
     }
