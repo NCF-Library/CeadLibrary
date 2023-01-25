@@ -305,6 +305,23 @@ namespace CeadLibrary.IO
             throw new InvalidTypeException(typeof(StringType), type);
         }
 
+        public virtual TEnum ReadEnum<TEnum>() where TEnum : Enum
+        {
+            object obj = typeof(TEnum).GetEnumUnderlyingType().Name switch {
+                "Byte" => () => ReadByte(),
+                "SByte" => () => ReadSByte(),
+                "Int16" => () => ReadInt16(),
+                "UInt16" => () => ReadUInt16(),
+                "Int32" => () => ReadInt32(),
+                "UInt32" => () => ReadUInt32(),
+                "Int64" => () => ReadInt64(),
+                "UInt64" => () => ReadUInt64(),
+                _ => throw new InvalidTypeException("Invalid enum underlying type")
+            };
+
+            return (TEnum)obj;
+        }
+
         public virtual Endian ReadByteOrderMark()
         {
             ushort bom = ReadUInt16();
