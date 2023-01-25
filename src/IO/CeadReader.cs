@@ -130,6 +130,34 @@ namespace CeadLibrary.IO
             }
         }
 
+        public virtual int ReadInt24()
+        {
+            Span<byte> buffer = stackalloc byte[4];
+
+            if (Endian == Endian.Big) {
+                Read(buffer[1..]);
+                return BinaryPrimitives.ReadInt32BigEndian(buffer);
+            }
+            else {
+                Read(buffer[..^1]);
+                return BinaryPrimitives.ReadInt32LittleEndian(buffer);
+            }
+        }
+
+        public virtual uint ReadUInt24()
+        {
+            Span<byte> buffer = stackalloc byte[4];
+
+            if (Endian == Endian.Big) {
+                Read(buffer[1..]);
+                return BinaryPrimitives.ReadUInt32BigEndian(buffer);
+            }
+            else {
+                Read(buffer[..^1]);
+                return BinaryPrimitives.ReadUInt32LittleEndian(buffer);
+            }
+        }
+
         public virtual int ReadInt32()
         {
             Span<byte> buffer = stackalloc byte[sizeof(int)];
