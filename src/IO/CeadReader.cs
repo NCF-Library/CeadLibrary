@@ -319,24 +319,20 @@ namespace CeadLibrary.IO
 
         public virtual T ReadObjectPtr<T>(SeekOrigin origin = SeekOrigin.Begin) where T : ICeadObject, new() => ReadObject<T>(ReadInt64(), origin);
         public virtual T ReadObjectPtr<T>(Func<T> read, SeekOrigin origin = SeekOrigin.Begin) => ReadObject(ReadInt64(), origin, read);
-        public virtual T ReadObject<T>() where T : ICeadObject, new() => ReadObject<T>(0, SeekOrigin.Current);
-        public virtual T ReadObject<T>(Func<T> read) => ReadObject(0, SeekOrigin.Current, read);
+        public virtual T ReadObject<T>() where T : ICeadObject, new() => (T)new T().Read(this);
         public virtual T ReadObject<T>(long offset, SeekOrigin origin) where T : ICeadObject, new() => ReadObject(offset, origin, () => (T)new T().Read(this));
         public virtual T ReadObject<T>(long offset, SeekOrigin origin, Func<T> read)
         {
             T results;
+            long origPos = _stream.Position;
 
             // Avoid redundant seeking 
-            if (offset == 0 && origin == SeekOrigin.Current) {
-                results = read();
-            }
-            else {
-                long origPos = _stream.Position;
+            if (offset >= 0 && origin != SeekOrigin.Current) {
                 Seek(offset, origin);
-                results = read();
-                Seek(origPos, origin);
             }
 
+            results = read();
+            Seek(origPos, origin);
             return results;
         }
 
