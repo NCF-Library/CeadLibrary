@@ -309,6 +309,46 @@ namespace CeadLibrary.IO
             }
         }
 
+        public virtual void WriteByteOrderMark(Endian endian)
+        {
+            Endian = endian;
+            WriteEnum(endian);
+        }
+
+        public virtual void WriteEnum<TEnum>(TEnum value) where TEnum : Enum
+        {
+            object obj = value;
+            string valueType = typeof(TEnum).GetEnumUnderlyingType().Name;
+
+            if (valueType == "Byte") {
+                Write((byte)obj);
+            }
+            else if (valueType == "SByte") {
+                Write((sbyte)obj);
+            }
+            else if (valueType == "Int16") {
+                Write((short)obj);
+            }
+            else if (valueType == "UInt16") {
+                Write((ushort)obj);
+            }
+            else if (valueType == "Int32") {
+                Write((int)obj);
+            }
+            else if (valueType == "UInt32") {
+                Write((uint)obj);
+            }
+            else if (valueType == "Int64") {
+                Write((long)obj);
+            }
+            else if (valueType == "UInt64") {
+                Write((ulong)obj);
+            }
+            else {
+                throw new InvalidTypeException($"Invalid enum underlying type '{valueType}'");
+            }
+        }
+
         public virtual void WritePascalString(ReadOnlySpan<char> value)
         {
             Write(value, StringType.Int16CharCount);
