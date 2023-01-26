@@ -345,12 +345,12 @@ namespace CeadLibrary.IO
             long origPos = _stream.Position;
 
             // Avoid redundant seeking 
-            if (offset >= 0 && origin != SeekOrigin.Current) {
+            if (offset != 0 || origin != SeekOrigin.Current) {
                 Seek(offset, origin);
             }
 
             results = read();
-            Seek(origPos, origin);
+            Seek(origPos, SeekOrigin.Begin);
             return results;
         }
 
