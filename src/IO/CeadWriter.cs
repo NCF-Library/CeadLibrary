@@ -124,6 +124,32 @@ namespace CeadLibrary.IO
             Write(buffer);
         }
 
+        public virtual void WriteInt24(int value)
+        {
+            Span<byte> buffer = stackalloc byte[sizeof(int)];
+            if (Endian == Endian.Big) {
+                BinaryPrimitives.WriteInt32BigEndian(buffer, value);
+                Write(buffer[1..]);
+            }
+            else {
+                BinaryPrimitives.WriteInt32LittleEndian(buffer, value);
+                Write(buffer[..^1]);
+            }
+        }
+
+        public virtual void WriteUInt24(uint value)
+        {
+            Span<byte> buffer = stackalloc byte[sizeof(uint)];
+            if (Endian == Endian.Big) {
+                BinaryPrimitives.WriteUInt32BigEndian(buffer, value);
+                Write(buffer[1..]);
+            }
+            else {
+                BinaryPrimitives.WriteUInt32LittleEndian(buffer, value);
+                Write(buffer[..^1]);
+            }
+        }
+
         public virtual void Write(int value)
         {
             Span<byte> buffer = stackalloc byte[sizeof(int)];
